@@ -42,7 +42,7 @@ public class StartupCommon
 		// same but for the associated item
 		itemBlockInventoryBasic = new ItemBlock(blockInventoryBasic);
 		itemBlockInventoryBasic.setRegistryName(blockInventoryBasic.getRegistryName());
-    ForgeRegistries.ITEMS.register(itemBlockInventoryBasic);
+   		ForgeRegistries.ITEMS.register(itemBlockInventoryBasic);
 
 		// register the tile entity associated with the inventory block
 		GameRegistry.registerTileEntity(TileEntityInventoryBasic.class, "minecraftbyexample:mbe30_tile_inventory_basic");

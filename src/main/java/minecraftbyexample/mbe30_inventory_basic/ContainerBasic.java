@@ -5,6 +5,9 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.SlotItemHandler;
 
 /**
  * User: brandon3055
@@ -40,7 +43,24 @@ public class ContainerBasic extends Container {
 		this.tileEntityInventoryBasic = tileEntityInventoryBasic;
 
 		final int SLOT_X_SPACING = 18;
-    final int SLOT_Y_SPACING = 18;
+		addPlayerSlots(invPlayer, SLOT_X_SPACING);
+		addOwnSlots(tileEntityInventoryBasic, SLOT_X_SPACING);
+	}
+
+	private void addOwnSlots(TileEntityInventoryBasic tileEntityInventoryBasic, int SLOT_X_SPACING) {
+		IItemHandler itemHandler = this.tileEntityInventoryBasic.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+		final int TILE_INVENTORY_XPOS = 8;
+		final int TILE_INVENTORY_YPOS = 20;
+		// Add the tile inventory container to the gui
+		for (int x = 0; x < TE_INVENTORY_SLOT_COUNT; x++) {
+			int slotNumber = x;
+			//addSlotToContainer(new Slot(tileEntityInventoryBasic, slotNumber, , TILE_INVENTORY_YPOS));
+			addSlotToContainer(new SlotItemHandler(itemHandler, slotNumber, TILE_INVENTORY_XPOS + SLOT_X_SPACING * x, TILE_INVENTORY_YPOS));
+		}
+	}
+
+	private int addPlayerSlots(InventoryPlayer invPlayer, int SLOT_X_SPACING) {
+		final int SLOT_Y_SPACING = 18;
 		final int HOTBAR_XPOS = 8;
 		final int HOTBAR_YPOS = 109;
 		// Add the players hotbar to the gui - the [xpos, ypos] location of each item
@@ -60,25 +80,14 @@ public class ContainerBasic extends Container {
 				addSlotToContainer(new Slot(invPlayer, slotNumber,  xpos, ypos));
 			}
 		}
-
-		if (TE_INVENTORY_SLOT_COUNT != tileEntityInventoryBasic.getSizeInventory()) {
-			System.err.println("Mismatched slot count in ContainerBasic(" + TE_INVENTORY_SLOT_COUNT
-												  + ") and TileInventory (" + tileEntityInventoryBasic.getSizeInventory()+")");
-		}
-		final int TILE_INVENTORY_XPOS = 8;
-		final int TILE_INVENTORY_YPOS = 20;
-		// Add the tile inventory container to the gui
-		for (int x = 0; x < TE_INVENTORY_SLOT_COUNT; x++) {
-			int slotNumber = x;
-			addSlotToContainer(new Slot(tileEntityInventoryBasic, slotNumber, TILE_INVENTORY_XPOS + SLOT_X_SPACING * x, TILE_INVENTORY_YPOS));
-		}
+		return SLOT_X_SPACING;
 	}
 
 	// Vanilla calls this method every tick to make sure the player is still able to access the inventory, and if not closes the gui
 	@Override
 	public boolean canInteractWith(EntityPlayer player)
 	{
-		return tileEntityInventoryBasic.isUsableByPlayer(player);
+		return tileEntityInventoryBasic.canInteractWith(player);
 	}
 
 	// This is where you specify what happens when a player shift clicks a slot in the gui
@@ -121,14 +130,5 @@ public class ContainerBasic extends Container {
 
 		sourceSlot.onTake(player, sourceStack);  //onPickupFromSlot()
 		return copyOfSourceStack;
-	}
-
-	// pass the close container message to the tileEntityInventory (not strictly needed for this example)
-	//  see ContainerChest and TileEntityChest
-	@Override
-	public void onContainerClosed(EntityPlayer playerIn)
-	{
-		super.onContainerClosed(playerIn);
-		this.tileEntityInventoryBasic.closeInventory(playerIn);
 	}
 }

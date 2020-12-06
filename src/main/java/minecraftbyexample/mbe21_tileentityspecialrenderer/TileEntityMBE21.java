@@ -4,12 +4,20 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.awt.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 /**
  * This is a simple tile entity which stores the gem colour, angular position and has an associated TileEntitySpecialRenderer (TESR)
@@ -19,6 +27,8 @@ public class TileEntityMBE21 extends TileEntity {
 
 	public static final Color INVALID_COLOR = null;
 
+	private PassthroughItemStackHandler itemStackHandler = new PassthroughItemStackHandler(this);
+
 	// get the colour of the gem.  returns INVALID_COLOR if not set yet.
 	public Color getGemColour() {
 		return gemColour;
@@ -27,6 +37,45 @@ public class TileEntityMBE21 extends TileEntity {
 	public void setGemColour(Color newColour)
 	{
 		gemColour = newColour;
+	}
+
+	public void setDestinationTileEntities(ArrayList<TileEntity> destinationTileEntities) {
+		currentDestinationIndex = 0;
+		this.destinationTileEntities = destinationTileEntities;
+	}
+
+	public void incrementDestination() {
+		currentDestinationIndex++;
+		if (currentDestinationIndex >= destinationTileEntities.size()) currentDestinationIndex = 0;
+	}
+
+	public IItemHandler getDestinationItemStackHandler() {
+		return getDestinationEntity().getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+	}
+
+	private TileEntity getDestinationEntity() {
+		if (currentDestinationIndex >= destinationTileEntities.size()) currentDestinationIndex = 0;
+		if (currentDestinationIndex < destinationTileEntities.size()) return destinationTileEntities.get(currentDestinationIndex);
+
+		return null;
+	}
+
+	@Override
+	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+		if (getDestinationEntity() != null) return getDestinationEntity().hasCapability(capability, facing);
+
+		return super.hasCapability(capability, facing);
+	}
+
+	@Nullable
+	@Override
+	public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing) {
+		//if (getDestinationEntity() != null) return getDestinationEntity().getCapability(capability, facing);
+		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+			return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(itemStackHandler);
+		}
+
+		return super.getCapability(capability, facing);
 	}
 
 	/**
@@ -79,8 +128,7 @@ public class TileEntityMBE21 extends TileEntity {
 		readFromNBT(pkt.getNbtCompound());
 	}
 
-	/* Creates a tag containing the TileEntity information, used by vanilla to transmit from server to client
- */
+	/* Creates a tag containing the TileEntity information, used by vanilla to transmit from server to client */
 	@Override
 	public NBTTagCompound getUpdateTag()
 	{
@@ -89,8 +137,7 @@ public class TileEntityMBE21 extends TileEntity {
 		return nbtTagCompound;
 	}
 
-	/* Populates this TileEntity with information from the tag, used by vanilla to transmit from server to client
- */
+	/* Populates this TileEntity with information from the tag, used by vanilla to transmit from server to client */
 	@Override
 	public void handleUpdateTag(NBTTagCompound tag)
 	{
@@ -159,6 +206,8 @@ public class TileEntityMBE21 extends TileEntity {
 	}
 
 	private Color gemColour = INVALID_COLOR;  // the RGB colour of the gem
+	private ArrayList<TileEntity> destinationTileEntities = new ArrayList<>();
+	private int currentDestinationIndex = 0;
 
 	private final long INVALID_TIME = 0;
 	private long lastTime = INVALID_TIME;  // used for animation

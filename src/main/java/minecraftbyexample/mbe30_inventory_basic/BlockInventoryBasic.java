@@ -51,13 +51,13 @@ public class BlockInventoryBasic extends BlockContainer
    * @return
    */
 
-  @Override
-  public TileEntity createNewTileEntity(World worldIn, int meta) {
+ 	@Override
+  	public TileEntity createNewTileEntity(World worldIn, int meta) {
     return new TileEntityInventoryBasic();
   }
 
-  // not needed if your block implements ITileEntityProvider (in this case implemented by BlockContainer), but it
-  //  doesn't hurt to include it anyway...
+	// not needed if your block implements ITileEntityProvider (in this case implemented by BlockContainer), but it
+	//  doesn't hurt to include it anyway...
 	@Override
 	public boolean hasTileEntity(IBlockState state)
 	{

@@ -6,16 +6,21 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -46,9 +51,9 @@ public class BlockMBE21 extends Block
 
   // Called just after the player places a block.  Sets the TileEntity's colour
   @Override
-  public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-    super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
-    TileEntity tileentity = worldIn.getTileEntity(pos);
+  public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+    super.onBlockPlacedBy(world, pos, state, placer, stack);
+    TileEntity tileentity = world.getTileEntity(pos);
     if (tileentity instanceof TileEntityMBE21) { // prevent a crash if not the right type, or is null
       TileEntityMBE21 tileEntityMBE21 = (TileEntityMBE21)tileentity;
 
@@ -58,6 +63,36 @@ public class BlockMBE21 extends Block
       Color gemColor = colorChoices[random.nextInt(colorChoices.length)];
       tileEntityMBE21.setGemColour(gemColor);
     }
+  }
+
+  @Override
+  public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+    if (world.isRemote) return true;
+
+    TileEntity tileEntity = world.getTileEntity(pos);
+    if (tileEntity instanceof TileEntityMBE21) { // prevent a crash if not the right type, or is null
+      TileEntityMBE21 tileEntityMBE21 = (TileEntityMBE21)tileEntity;
+
+      int range = 2;
+      ArrayList<TileEntity> tileEntities = new ArrayList<>();
+      Iterable<BlockPos> positionsToCheck = BlockPos.getAllInBox(pos.getX() - range, pos.getY(), pos.getZ() - range, pos.getX() + range, pos.getY(), pos.getZ() + range);
+      for (BlockPos posToCheck : positionsToCheck) {
+        IBlockState blockState = world.getBlockState(posToCheck);
+        Block block = blockState.getBlock();
+        if (block.hasTileEntity(blockState)) {
+          TileEntity tileEntityAtPos = world.getTileEntity(posToCheck);
+          if (tileEntityAtPos instanceof TileEntityChest) {
+            tileEntities.add(tileEntityAtPos);
+          }
+        }
+      }
+
+      System.out.println("Found " + tileEntities.size() + " tile entities in range");
+      tileEntityMBE21.setDestinationTileEntities(tileEntities);
+    }
+
+
+    return true;
   }
 
   // -----------------

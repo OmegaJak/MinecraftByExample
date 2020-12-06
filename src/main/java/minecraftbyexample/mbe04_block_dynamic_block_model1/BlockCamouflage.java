@@ -140,6 +140,8 @@ public class BlockCamouflage extends Block {
       if (adjacentBlock != Blocks.AIR
           && adjacentBlock.getBlockLayer() == BlockRenderLayer.SOLID
           && adjacentBlock.isOpaqueCube(adjacentIBS)) {
+        adjacentBlock.hasTileEntity(adjacentIBS);
+        //world.getTileEntity()
         adjacentSolidBlocks.put(facing, adjacentIBS);
         if (adjacentBlockCount.containsKey(adjacentIBS)) {
           adjacentBlockCount.put(adjacentIBS, 1 + adjacentBlockCount.get(adjacentIBS));
