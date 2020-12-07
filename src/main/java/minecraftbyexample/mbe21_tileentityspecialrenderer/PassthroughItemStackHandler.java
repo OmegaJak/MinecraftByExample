@@ -27,7 +27,9 @@ public class PassthroughItemStackHandler implements IItemHandler {
     @Override
     public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
         ItemStack toReturn = getCurrentHandler().insertItem(slot, stack, simulate);
-        tileEntity.incrementDestination();
+        if (!simulate) {
+            tileEntity.incrementDestination();
+        }
         return toReturn;
     }
 
